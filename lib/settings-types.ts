@@ -138,7 +138,7 @@ export type VoiceApiConfig = {
     sttModel?: string;
     defaultVoice: string;
     languageBoost?: string;
-    /** Minimax voice_setting.speed. Missing values keep the legacy 1.0x behavior. */
+    /** TTS 语速：Minimax voice_setting.speed / Fish Audio prosody.speed。缺省按 1.0x。 */
     speechSpeed?: number;
     customVoices?: { id: string; name: string; createdAt?: number }[];
     enableSTT: boolean;
