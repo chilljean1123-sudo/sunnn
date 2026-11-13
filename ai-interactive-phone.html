@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>治愈小手机</title>
+<style>
+  :root{
+    --bg:#e9f1ec;
+    --wall-a:#eef6f1;
+    --wall-b:#dcebe2;
+    --wall-c:#f4efe6;
+    --accent:#4fae8e;
+    --accent-deep:#3c9275;
+    --accent-soft:#dcefe6;
+    --blue:#7aa7d9;
+    --blue-soft:#e3edf7;
+    --ink:#23303a;
+    --ink-soft:#75828c;
+    --ink-faint:#a7b1b9;
+    --card:#ffffff;
+    --line:#e9eef0;
+    --danger:#e5695f;
+    --danger-soft:#fbe9e7;
+    --shadow:0 10px 30px rgba(60,90,80,.12);
+    --shadow-sm:0 4px 14px rgba(60,90,80,.08);
+    --radius:18px;
+    --radius-lg:26px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Segoe UI","Microsoft YaHei",sans-serif;
+    background:linear-gradient(135deg,#dfe9e3 0%,#eef3ef 45%,#e8e0d6 100%);
+    color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:20px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- Phone frame ---------- */
+  .phone{
+    width:392px;height:794px;
+    background:#10151a;
+    border-radius:56px;
+    padding:11px;
+    box-shadow:0 40px 90px rgba(20,35,30,.35), 0 0 0 1px rgba(255,255,255,.06) inset;
+    flex-shrink:0;
+  }
+  .screen{
+    width:100%;height:100%;
+    border-radius:46px;
+    background:var(--bg);
+    overflow:hidden;
+    position:relative;
+    display:flex;flex-direction:column;
+  }
+  @media (max-width:460px){
+    body{padding:8px;}
+    .phone{transform:scale(.92);}
+  }
+
+  /* ---------- Status bar ---------- */
+  .statusbar{
+    height:48px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 30px 0 30px;
+    font-size:14px;font-weight:600;color:var(--ink);
+    position:relative;z-index:20;
+  }
+  .statusbar .time{letter-spacing:.3px;}
+  .statusbar .sys-icons{display:flex;align-items:center;gap:6px;}
+  .sys-icons svg{display:block;}
+  .island{
+    position:absolute;top:12px;left:50%;transform:translateX(-50%);
+    width:116px;height:30px;background:#000;border-radius:18px;z-index:21;
+  }
+
+  /* ---------- Views ---------- */
+  .view{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .28s ease, transform .28s ease;transform:translateX(8px);}
+  .view.active{opacity:1;pointer-events:auto;transform:none;z-index:10;}
+  .view-body{flex:1;overflow-y:auto;padding:14px 18px 90px;-webkit-overflow-scrolling:touch;}
+  .view-body.no-pad{padding:0;}
+
+  .navbar{
+    height:52px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;padding:0 12px;
+    font-size:17px;font-weight:600;
+  }
+  .navbar .nav-title{max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .navbar .nav-sub{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:500;color:var(--ink-faint);}
+  .icon-btn{
+    width:36px;height:36px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    background:transparent;border:none;color:var(--ink);cursor:pointer;
+    transition:background .15s;
+  }
+  .icon-btn:hover{background:rgba(0,0,0,.05);}
+  .icon-btn:active{transform:scale(.94);}
+  .nav-left{position:absolute;left:8px;top:50%;transform:translateY(-50%);}
+  .nav-right{position:absolute;right:8px;top:50%;transform:translateY(-50%);}
+
+  /* ---------- Home ---------- */
+  #home{background:linear-gradient(160deg,var(--wall-a) 0%,var(--wall-b) 55%,var(--wall-c) 100%);}
+  #home .wall-blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;pointer-events:none;}
+  #home .wall-blob.b1{width:220px;height:220px;background:#cde8d9;top:70px;right:-50px;}
+  #home .wall-blob.b2{width:180px;height:180px;background:#d7e3f1;bottom:120px;left:-60px;}
+  .app-grid{position:relative;z-index:2;padding:26px 22px;display:grid;grid-template-columns:repeat(4,1fr);gap:24px 14px;}
+  .app-item{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;}
+  .app-item:active .app-icon{transform:scale(.9);}
+  .app-icon{
+    width:62px;height:62px;border-radius:16px;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:var(--shadow-sm);
+    transition:transform .18s ease;
+    color:#fff;
+  }
+  .app-icon svg{width:32px;height:32px;}
+  .app-icon.ic-set{background:linear-gradient(140deg,#8fb9a8,#4fae8e);}
+  .app-icon.ic-wx{background:linear-gradient(140deg,#9dc6ec,#5b96cf);}
+  .app-icon.ic-wb{background:linear-gradient(140deg,#d9b48f,#c98f5b);}
+  .app-label{font-size:12px;color:var(--ink);font-weight:500;}
+  .home-clock{position:relative;z-index:2;text-align:center;padding-top:14px;}
+  .home-clock .d{font-size:15px;font-weight:600;}
+  .home-clock .t{font-size:56px;font-weight:700;letter-spacing:-2px;line-height:1.05;color:var(--ink);}
+
+  /* ---------- Cards & forms ---------- */
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:16px;margin-bottom:14px;}
+  .card.flat{box-shadow:none;background:rgba(255,255,255,.65);}
+  .section-title{font-size:13px;color:var(--ink-soft);font-weight:600;margin:18px 4px 8px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:6px;font-weight:600;}
+  .field input,.field textarea,.field select{
+    width:100%;border:1.5px solid var(--line);border-radius:13px;
+    padding:11px 13px;font-size:14px;color:var(--ink);background:#fafbfb;
+    font-family:inherit;outline:none;transition:border .15s, box-shadow .15s;
+  }
+  .field textarea{resize:vertical;min-height:72px;line-height:1.6;}
+  .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,174,142,.14);}
+  .row{display:flex;gap:10px;}
+  .row .field{flex:1;}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    border:none;border-radius:13px;padding:11px 16px;font-size:14px;font-weight:600;
+    cursor:pointer;transition:transform .12s, opacity .15s;font-family:inherit;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{background:var(--accent-deep);}
+  .btn-ghost{background:var(--accent-soft);color:var(--accent-deep);}
+  .btn-blue{background:var(--blue-soft);color:#3d6a9c;}
+  .btn-soft{background:#f1f4f2;color:var(--ink);}
+  .btn-danger{background:var(--danger-soft);color:var(--danger);}
+  .btn-block{width:100%;}
+  .btn:disabled{opacity:.55;cursor:not-allowed;}
+  .btn.sm{padding:7px 11px;font-size:12px;border-radius:10px;}
+  .btn.xs{padding:5px 9px;font-size:11px;border-radius:9px;}
+
+  /* ---------- Lists ---------- */
+  .list-item{
+    background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow-sm);
+    padding:14px 16px;margin-bottom:11px;display:flex;align-items:center;gap:12px;cursor:pointer;
+    transition:transform .12s;
+  }
+  .list-item:active{transform:scale(.985);}
+  .avatar{
+    width:46px;height:46px;border-radius:14px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:19px;font-weight:600;
+  }
+  .list-main{flex:1;min-width:0;}
+  .list-main .t{font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px;}
+  .list-main .p{font-size:12.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;}
+  .list-side{text-align:right;flex-shrink:0;}
+  .list-side .time{font-size:11px;color:var(--ink-faint);}
+  .badge{
+    font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:var(--accent-soft);color:var(--accent-deep);
+  }
+  .badge.blue{background:var(--blue-soft);color:#3d6a9c;}
+  .badge.gray{background:#eef1f2;color:var(--ink-soft);}
+  .chip{
+    display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;
+    padding:7px 13px;border-radius:20px;background:#eef2ef;color:var(--ink-soft);cursor:pointer;
+    margin:0 8px 6px 0;transition:all .15s;border:1.5px solid transparent;
+  }
+  .chip.active{background:var(--accent);color:#fff;}
+  .empty{
+    text-align:center;padding:56px 24px;color:var(--ink-soft);
+  }
+  .empty svg{width:54px;height:54px;color:#c6d2cc;margin-bottom:14px;}
+  .empty .t{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px;}
+  .empty .p{font-size:13px;line-height:1.6;}
+
+  /* ---------- Switch ---------- */
+  .switch{position:relative;width:46px;height:28px;flex-shrink:0;cursor:pointer;}
+  .switch input{opacity:0;width:0;height:0;}
+  .switch .track{position:absolute;inset:0;background:#d7dfdc;border-radius:20px;transition:background .2s;}
+  .switch .knob{position:absolute;top:3px;left:3px;width:22px;height:22px;background:#fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .2s;}
+  .switch input:checked + .track{background:var(--accent);}
+  .switch input:checked + .track + .knob{transform:translateX(18px);}
+
+  /* ---------- Toast ---------- */
+  #toast{
+    position:absolute;left:50%;bottom:120px;transform:translateX(-50%) translateY(12px);
+    background:rgba(35,48,58,.94);color:#fff;font-size:13px;padding:10px 18px;border-radius:22px;
+    opacity:0;pointer-events:none;transition:all .25s;z-index:99;max-width:82%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ---------- Chat ---------- */
+  .chat-area{flex:1;overflow-y:auto;padding:16px 14px 8px;display:flex;flex-direction:column;gap:12px;}
+  .msg{display:flex;flex-direction:column;max-width:76%;}
+  .msg .bubble{
+    padding:11px 14px;border-radius:18px;font-size:14.5px;line-height:1.55;word-break:break-word;white-space:pre-wrap;
+  }
+  .msg.user{align-self:flex-end;align-items:flex-end;}
+  .msg.user .bubble{background:var(--accent);color:#fff;border-bottom-right-radius:5px;}
+  .msg.assistant{align-self:flex-start;align-items:flex-start;}
+  .msg.assistant .bubble{background:#fff;box-shadow:var(--shadow-sm);border-bottom-left-radius:5px;}
+  .msg .meta{font-size:10.5px;color:var(--ink-faint);margin-top:4px;}
+  .msg .sticker{max-width:150px;max-height:150px;border-radius:12px;display:block;}
+  .msg .sticker-wrap{position:relative;}
+  .msg .sticker-name{font-size:11px;color:var(--ink-faint);text-align:center;margin-top:3px;}
+  .voice-bubble{display:flex;align-items:center;gap:8px;cursor:pointer;min-width:120px;}
+  .voice-bubble .waves{display:flex;align-items:center;gap:2.5px;height:20px;}
+  .voice-bubble .waves span{width:3px;background:currentColor;border-radius:2px;}
+  .voice-bubble .dur{font-size:12px;opacity:.85;}
+  .voice-reveal{display:none;margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.05);font-size:13px;line-height:1.55;color:inherit;width:100%;}
+  .voice-reveal.open{display:block;}
+  .typing{display:flex;gap:4px;padding:14px 16px;}
+  .typing span{width:7px;height:7px;border-radius:50%;background:#b9c4c0;animation:blink 1.2s infinite;}
+  .typing span:nth-child(2){animation-delay:.2s;}
+  .typing span:nth-child(3){animation-delay:.4s;}
+  @keyframes blink{0%,60%,100%{opacity:.3;transform:translateY(0);}30%{opacity:1;transform:translateY(-3px);}}
+
+  /* ---------- Chat input ---------- */
+  .chat-footer{flex-shrink:0;background:rgba(255,255,255,.86);backdrop-filter:blur(18px);border-top:1px solid var(--line);}
+  .input-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;}
+  .input-bar input{
+    flex:1;border:1.5px solid var(--line);border-radius:22px;padding:10px 15px;font-size:14.5px;
+    background:#fafbfb;outline:none;font-family:inherit;
+  }
+  .input-bar input:focus{border-color:var(--accent);}
+  .reply-btn{
+    display:inline-flex;align-items:center;gap:5px;border:none;border-radius:20px;
+    padding:9px 13px;font-size:13px;font-weight:600;cursor:pointer;color:#fff;
+    background:linear-gradient(140deg,#8fb9a8,#4fae8e);transition:transform .12s;font-family:inherit;white-space:nowrap;
+  }
+  .reply-btn:active{transform:scale(.95);}
+  .reply-btn:disabled{opacity:.5;cursor:not-allowed;}
+  .send-btn{
+    width:38px;height:38px;border-radius:50%;border:none;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s;
+  }
+  .send-btn:active{transform:scale(.9);}
+
+  /* ---------- Function panel ---------- */
+  .fn-panel{
+    max-height:0;overflow:hidden;transition:max-height .28s ease;background:rgba(255,255,255,.94);
+  }
+  .fn-panel.open{max-height:320px;border-top:1px solid var(--line);}
+  .fn-inner{padding:16px;}
+  .fn-tools{display:flex;gap:12px;}
+  .fn-tool{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:9px;padding:16px 8px;
+    background:#f4f7f5;border-radius:16px;cursor:pointer;border:none;font-family:inherit;color:var(--ink);transition:transform .12s;
+  }
+  .fn-tool:active{transform:scale(.96);}
+  .fn-tool .ic{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#fff;}
+  .fn-tool .ic.voice{background:linear-gradient(140deg,#9dc6ec,#5b96cf);}
+  .fn-tool .ic.sticker{background:linear-gradient(140deg,#d9b48f,#c98f5b);}
+  .fn-tool .lbl{font-size:12.5px;font-weight:600;}
+  .sticker-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .sticker-cell{position:relative;border-radius:12px;overflow:hidden;background:#f4f7f5;cursor:pointer;aspect-ratio:1;}
+  .sticker-cell img{width:100%;height:100%;object-fit:cover;display:block;}
+  .sticker-cell .nm{position:absolute;left:0;right:0;bottom:0;font-size:9px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.6));padding:4px 4px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sticker-cell .del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;opacity:0;transition:opacity .15s;}
+  .sticker-cell:hover .del{opacity:1;}
+  .import-cell{border:1.5px dashed #ccd8d1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ink-soft);gap:4px;}
+  .import-cell .plus{font-size:22px;line-height:1;}
+  .import-cell .lbl{font-size:10px;}
+  .fn-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .fn-head .ttl{font-size:13px;font-weight:700;}
+  .back-link{font-size:12.5px;color:var(--accent-deep);font-weight:600;background:none;border:none;cursor:pointer;font-family:inherit;}
+
+  /* ---------- Modal ---------- */
+  .modal-mask{position:absolute;inset:0;background:rgba(20,28,25,.4);z-index:60;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+  .modal-mask.show{opacity:1;pointer-events:auto;}
+  .modal{background:#fff;border-radius:22px;width:84%;max-width:320px;padding:20px;box-shadow:0 24px 60px rgba(0,0,0,.25);transform:translateY(12px) scale(.97);transition:transform .22s;}
+  .modal-mask.show .modal{transform:none;}
+  .modal .m-title{font-size:16px;font-weight:700;margin-bottom:4px;}
+  .modal .m-sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:14px;line-height:1.5;}
+  .modal .m-actions{display:flex;gap:10px;margin-top:16px;}
+  .modal .m-actions .btn{flex:1;}
+
+  /* ---------- Home indicator ---------- */
+  .home-indicator{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:132px;height:5px;background:rgba(20,30,28,.28);border-radius:3px;z-index:50;pointer-events:none;}
+
+  ::-webkit-scrollbar{width:0;height:0;}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="screen">
+
+    <!-- Status bar -->
+    <div class="statusbar">
+      <span class="time" id="statusTime">9:41</span>
+      <div class="sys-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M1.5 4.5a10 10 0 0 1 14 0"/><path d="M4 7a6.5 6.5 0 0 1 9 0"/><path d="M6.5 9.5a3 3 0 0 1 4 0"/></svg>
+        <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="15" height="8" rx="1.5" fill="currentColor"/><rect x="21.5" y="3.5" width="2" height="5" rx="1" fill="currentColor" opacity=".5"/></svg>
+      </div>
+      <div class="island"></div>
+    </div>
+
+    <!-- ============ HOME ============ -->
+    <div class="view active" id="home">
+      <div class="wall-blob b1"></div>
+      <div class="wall-blob b2"></div>
+      <div class="home-clock">
+        <div class="d" id="homeDate">--月--日 星期-</div>
+        <div class="t" id="homeTime">9:41</div>
+      </div>
+      <div class="app-grid">
+        <div class="app-item" onclick="openApp('settings')">
+          <div class="app-icon ic-set">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </div>
+          <div class="app-label">设置</div>
+        </div>
+        <div class="app-item" onclick="openApp('wechat')">
+          <div class="app-icon ic-wx">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </div>
+          <div class="app-label">微信</div>
+        </div>
+        <div class="app-item" onclick="openApp('worldbook')">
+          <div class="app-icon ic-wb">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          </div>
+          <div class="app-label">世界书</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SETTINGS ============ -->
+    <div class="view" id="settings">
+      <div class="navbar">
+        <div class="nav-title">设置</div>
+        <button class="icon-btn nav-left" onclick="goHome()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+      </div>
+      <div class="view-body" id="settingsBody"></div>
+    </div>
+
+    <!-- ============ WECHAT (list) ============ -->
+    <div class="view" id="wechat">
+      <div class="navbar">
+        <div class="nav-title">微信</div>
+        <button class="icon-btn nav-left" onclick="goHome()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="icon-btn nav-right" onclick="openPersona()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+      <div class="view-body no-pad" style="padding:14px 18px 90px;" id="wechatBody"></div>
+    </div>
+
+    <!-- ============ CHAT ============ -->
+    <div class="view" id="chat">
+      <div class="navbar">
+        <div class="nav-title" id="chatTitle">聊天</div>
+        <button class="icon-btn nav-left" onclick="openApp('wechat')">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="nav-sub" id="chatSub"></div>
+      </div>
+      <div class="chat-area" id="chatArea"></div>
+      <div class="chat-footer">
+        <div class="fn-panel" id="fnPanel">
+          <div class="fn-inner" id="fnInner"></div>
+        </div>
+        <div class="input-bar">
+          <button class="icon-btn" onclick="toggleFn()" id="fnToggleBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button class="reply-btn" id="replyBtn" onclick="doReply()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+            回复
+          </button>
+          <input type="text" id="chatInput" placeholder="发消息..." onkeydown="if(event.key==='Enter')sendText()">
+          <button class="send-btn" onclick="sendText()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PERSONA FORM ============ -->
+    <div class="view" id="personaForm">
+      <div class="navbar">
+        <div class="nav-title" id="personaFormTitle">创建人设</div>
+        <button class="icon-btn nav-left" onclick="backFromPersona()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+      </div>
+      <div class="view-body" id="personaFormBody"></div>
+    </div>
+
+    <!-- ============ WORLD BOOK ============ -->
+    <div class="view" id="worldbook">
+      <div class="navbar">
+        <div class="nav-title">世界书</div>
+        <button class="icon-btn nav-left" onclick="goHome()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="icon-btn nav-right" onclick="openWorldBookForm()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+      <div class="view-body" id="worldbookBody"></div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast"></div>
+
+    <!-- Modal -->
+    <div class="modal-mask" id="modalMask" onclick="if(event.target===this)closeModal()">
+      <div class="modal" id="modalBox"></div>
+    </div>
+
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<!-- Hidden file input for stickers -->
+<input type="file" id="stickerInput" accept="image/*" multiple style="display:none" onchange="importStickers(event)">
+
+<script>
+/* ============ Icons ============ */
+const IC = {
+  back:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+  plus:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  trash:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  edit:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>',
+  book:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  msg:'<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>',
+  gear:'<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  worldbook:'<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  spark:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>',
+  check:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+};
+
+/* ============ Store ============ */
+const STORE_KEY = 'healing_phone_v1';
+let store = loadStore();
+function loadStore(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){
+      const d = JSON.parse(raw);
+      if(d && typeof d === 'object') return Object.assign({apis:[],personas:[],worldBooks:[],stickers:[],chats:{},activeApiId:null}, d);
+    }
+  }catch(e){}
+  return {apis:[],personas:[],worldBooks:[],stickers:[],chats:{},activeApiId:null};
+}
+function persist(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(store)); }
+  catch(e){ toast('存储失败：数据过大，可删除部分表情包'); }
+}
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtTime(ts){
+  const d = new Date(ts);
+  const now = new Date();
+  const hm = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+  if(d.toDateString() === now.toDateString()) return hm;
+  return (d.getMonth()+1) + '/' + d.getDate();
+}
+function colorFor(str){
+  let h=0; for(let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) % 360;
+  return `hsl(${h},45%,62%)`;
+}
+
+/* ============ Navigation ============ */
+const views = ['home','settings','wechat','chat','personaForm','worldbook'];
+function showView(id){
+  views.forEach(v => document.getElementById(v).classList.toggle('active', v===id));
+}
+function openApp(id){
+  if(id==='settings') renderSettings();
+  if(id==='wechat') renderWechat();
+  if(id==='worldbook') renderWorldBooks();
+  if(id==='chat'){ renderChat(); }
+  showView(id);
+}
+function goHome(){ showView('home'); }
+
+/* ============ Toast ============ */
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ============ Modal ============ */
+function openModal(html){ document.getElementById('modalBox').innerHTML = html; document.getElementById('modalMask').classList.add('show'); }
+function closeModal(){ document.getElementById('modalMask').classList.remove('show'); }
+
+/* ============ Clock ============ */
+function tick(){
+  const d = new Date();
+  const hm = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+  document.getElementById('statusTime').textContent = hm;
+  document.getElementById('homeTime').textContent = hm;
+  const wd = ['日','一','二','三','四','五','六'][d.getDay()];
+  document.getElementById('homeDate').textContent = (d.getMonth()+1) + '月' + d.getDate() + '日 星期' + wd;
+}
+
+/* ============ Settings ============ */
+function activeApi(){ return store.apis.find(a=>a.id===store.activeApiId) || store.apis[0] || null; }
+
+function renderSettings(){
+  const b = document.getElementById('settingsBody');
+  let html = '<div class="section-title">当前使用的 API</div>';
+  const act = activeApi();
+  if(act){
+    html += `<div class="card flat" style="display:flex;align-items:center;gap:12px;">
+      <div class="avatar" style="background:${colorFor(act.name||'api')}">${esc((act.name||'A').charAt(0).toUpperCase())}</div>
+      <div class="list-main">
+        <div class="t" style="font-size:15px;">${esc(act.name||'未命名')}</div>
+        <div class="p" style="font-size:12px;color:var(--ink-soft);">${esc(act.model||'未选模型')}</div>
+      </div>
+      <span class="badge">当前</span>
+    </div>`;
+  } else {
+    html += `<div class="card flat" style="text-align:center;color:var(--ink-soft);font-size:13px;padding:22px;">尚未配置 API，聊天将无法回复</div>`;
+  }
+
+  html += '<div class="section-title">已保存的 API 列表</div>';
+  if(store.apis.length===0){
+    html += `<div class="empty">${IC.gear}<div class="t">还没有 API</div><div class="p">点击下方按钮，添加你的第一个 API 配置</div></div>`;
+  } else {
+    store.apis.forEach(a=>{
+      const isAct = a.id === store.activeApiId || (!store.activeApiId && a.id === store.apis[0].id);
+      html += `<div class="list-item" style="cursor:default;">
+        <div class="avatar" style="background:${colorFor(a.name||'api')}">${esc((a.name||'A').charAt(0).toUpperCase())}</div>
+        <div class="list-main">
+          <div class="t" style="font-size:15px;">${esc(a.name||'未命名')} ${isAct?'<span class="badge">当前</span>':''}</div>
+          <div class="p" style="font-size:12px;color:var(--ink-soft);">${esc(a.model||'未选模型')}</div>
+          <div class="p" style="font-size:11px;color:var(--ink-faint);overflow:hidden;text-overflow:ellipsis;max-width:200px;">${esc(a.url||'')}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          ${!isAct?`<button class="btn btn-ghost xs" onclick="setActiveApi('${a.id}')">设为当前</button>`:''}
+          <button class="btn btn-soft xs" onclick="editApi('${a.id}')">${IC.edit}</button>
+          <button class="btn btn-danger xs" onclick="delApi('${a.id}')">${IC.trash}</button>
+        </div>
+      </div>`;
+    });
+  }
+  html += `<button class="btn btn-primary btn-block" onclick="newApi()">${IC.plus} 添加 API</button>`;
+  b.innerHTML = html;
+}
+
+function newApi(){ openApiForm(null); }
+function editApi(id){ openApiForm(id); }
+function setActiveApi(id){ store.activeApiId = id; persist(); renderSettings(); toast('已设为当前 API'); }
+function delApi(id){
+  openModal(`<div class="m-title">删除 API</div><div class="m-sub">确定删除这个 API 配置吗？此操作不可撤销。</div>
+    <div class="m-actions"><button class="btn btn-soft" onclick="closeModal()">取消</button>
+    <button class="btn btn-danger" onclick="confirmDelApi('${id}')">删除</button></div>`);
+}
+function confirmDelApi(id){
+  store.apis = store.apis.filter(a=>a.id!==id);
+  if(store.activeApiId===id) store.activeApiId = null;
+  persist(); closeModal(); renderSettings(); toast('已删除');
+}
+
+function openApiForm(id){
+  const a = id ? store.apis.find(x=>x.id===id) : null;
+  showView('settings');
+  const b = document.getElementById('settingsBody');
+  b.innerHTML = `
+    <div class="card">
+      <div class="field"><label>配置名称</label><input id="apiName" placeholder="例如：我的主力模型" value="${esc(a? a.name : '')}"></div>
+      <div class="field"><label>API 地址（URL）</label><input id="apiUrl" placeholder="https://api.openai.com/v1" value="${esc(a? a.url : '')}"></div>
+      <div class="field"><label>API Key</label><input id="apiKey" type="password" placeholder="sk-..." value="${esc(a? a.key : '')}"></div>
+      <div class="field">
+        <label>模型</label>
+        <div class="row">
+          <select id="apiModel" style="flex:1;"></select>
+        </div>
+      </div>
+      <button class="btn btn-blue" id="fetchBtn" onclick="fetchModels()" style="width:100%;margin-bottom:10px;">拉取模型列表</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-soft" style="flex:1;" onclick="renderSettings()">取消</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="saveApi('${id||''}')">保存</button>
+      </div>
+    </div>`;
+  // populate model options
+  const sel = document.getElementById('apiModel');
+  let models = (a && a.models) ? a.models : [];
+  if(a && a.model && !models.includes(a.model)) models.unshift(a.model);
+  sel.innerHTML = models.length ? models.map(m=>`<option value="${esc(m)}" ${m===a.model?'selected':''}>${esc(m)}</option>`).join('')
+                                : '<option value="">（请先拉取模型）</option>';
+}
+
+async function fetchModels(){
+  const url = document.getElementById('apiUrl').value.trim();
+  const key = document.getElementById('apiKey').value.trim();
+  if(!url || !key){ toast('请先填写 URL 和 Key'); return; }
+  const btn = document.getElementById('fetchBtn');
+  btn.disabled = true; btn.textContent = '拉取中...';
+  try{
+    const base = getApiBase(url);
+    const res = await fetch(base + '/models', { headers:{ 'Authorization':'Bearer '+key } });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    const models = (data.data||[]).map(m=>m.id).filter(Boolean);
+    if(!models.length) throw new Error('未找到模型');
+    const sel = document.getElementById('apiModel');
+    sel.innerHTML = models.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');
+    toast('拉取成功，共 '+models.length+' 个模型');
+  }catch(e){
+    toast('拉取失败：'+e.message);
+  }finally{
+    btn.disabled = false; btn.textContent = '拉取模型列表';
+  }
+}
+
+function saveApi(id){
+  const name = document.getElementById('apiName').value.trim() || '未命名';
+  const url = document.getElementById('apiUrl').value.trim();
+  const key = document.getElementById('apiKey').value.trim();
+  const model = document.getElementById('apiModel').value;
+  if(!url || !key){ toast('请填写 URL 和 Key'); return; }
+  if(!model){ toast('请选择模型（可先拉取模型列表）'); return; }
+  const models = Array.from(document.getElementById('apiModel').options).map(o=>o.value).filter(Boolean);
+  if(id){
+    const a = store.apis.find(x=>x.id===id);
+    Object.assign(a, {name,url,key,model,models});
+  } else {
+    const a = {id:uid(),name,url,key,model,models};
+    store.apis.push(a);
+    if(!store.activeApiId) store.activeApiId = a.id;
+  }
+  persist(); renderSettings(); toast('已保存');
+}
+
+function getApiBase(url){
+  let u = url.replace(/\/+$/,'');
+  if(!/\/v\d+$/i.test(u)) u += '/v1';
+  return u;
+}
+
+/* ============ WeChat list ============ */
+function renderWechat(){
+  const b = document.getElementById('wechatBody');
+  if(store.personas.length===0){
+    b.innerHTML = `<div class="empty" style="padding-top:80px;">${IC.msg}<div class="t">还没有人设</div><div class="p">点击右上角 + 创建你的第一个人设，<br>开始一场治愈的对话</div></div>`;
+    return;
+  }
+  let html = '';
+  store.personas.forEach(p=>{
+    const msgs = store.chats[p.id] || [];
+    const last = msgs[msgs.length-1];
+    let preview = '开始聊天吧';
+    if(last){
+      if(last.type==='sticker') preview = '[表情包]';
+      else if(last.type==='voice') preview = '[语音]';
+      else preview = last.content || '';
+    }
+    const t = last ? last.ts : p.createdAt;
+    html += `<div class="list-item" onclick="openChat('${p.id}')">
+      <div class="avatar" style="background:${colorFor(p.name||p.id)}">${esc((p.name||'?').charAt(0))}</div>
+      <div class="list-main">
+        <div class="t">${esc(p.name||'未命名')} ${p.remark?`<span class="badge gray" style="font-weight:500;">${esc(p.remark)}</span>`:''}</div>
+        <div class="p">${esc(preview)}</div>
+      </div>
+      <div class="list-side"><div class="time">${fmtTime(t)}</div></div>
+    </div>`;
+  });
+  b.innerHTML = html;
+}
+
+/* ============ Persona form ============ */
+let editingPersonaId = null;
+function openPersona(id){
+  editingPersonaId = id || null;
+  const p = id ? store.personas.find(x=>x.id===id) : null;
+  document.getElementById('personaFormTitle').textContent = id ? '编辑人设' : '创建人设';
+  const b = document.getElementById('personaFormBody');
+  // world book binding options
+  let wbHtml = '';
+  if(store.worldBooks.length===0){
+    wbHtml = `<div style="font-size:12.5px;color:var(--ink-faint);padding:10px 0;">暂无世界书，可先到「世界书」应用创建</div>`;
+  } else {
+    store.worldBooks.forEach(w=>{
+      const bound = p && p.worldBookIds && p.worldBookIds.includes(w.id);
+      wbHtml += `<label class="list-item" style="cursor:pointer;">
+        <div class="list-main">
+          <div class="t" style="font-size:14px;">${esc(w.name||'未命名')} ${w.isGlobalDefault?'<span class="badge">全局</span>':''}</div>
+          <div class="p" style="font-size:12px;color:var(--ink-faint);">${esc(w.group||'未分组')}</div>
+        </div>
+        <input type="checkbox" data-wbid="${w.id}" ${bound?'checked':''} style="width:18px;height:18px;accent-color:var(--accent);">
+      </label>`;
+    });
+  }
+  b.innerHTML = `
+    <div class="card">
+      <div class="field"><label>姓名</label><input id="pName" placeholder="角色的名字" value="${esc(p? p.name : '')}"></div>
+      <div class="field"><label>备注</label><input id="pRemark" placeholder="一句话备注（可选）" value="${esc(p? p.remark : '')}"></div>
+      <div class="field"><label>角色设定</label><textarea id="pRole" placeholder="描述角色的性格、语气、背景等...">${esc(p? p.role : '')}</textarea></div>
+    </div>
+    <div class="section-title">世界书绑定</div>
+    <div class="card" style="padding:10px;">${wbHtml}</div>
+    <div style="font-size:11.5px;color:var(--ink-faint);padding:0 4px 8px;">已勾选的世界书将作为该角色必须遵守的守则，参与每次回复。标记「全局」的世界书会自动生效。</div>
+    <button class="btn btn-primary btn-block" onclick="savePersona()">保存人设</button>`;
+  showView('personaForm');
+}
+function backFromPersona(){ openApp('wechat'); }
+function savePersona(){
+  const name = document.getElementById('pName').value.trim();
+  if(!name){ toast('请填写姓名'); return; }
+  const remark = document.getElementById('pRemark').value.trim();
+  const role = document.getElementById('pRole').value.trim();
+  const wbIds = Array.from(document.querySelectorAll('[data-wbid]:checked')).map(e=>e.dataset.wbid);
+  if(editingPersonaId){
+    const p = store.personas.find(x=>x.id===editingPersonaId);
+    Object.assign(p, {name,remark,role,worldBookIds:wbIds});
+  } else {
+    store.personas.push({id:uid(),name,remark,role,worldBookIds:wbIds,createdAt:Date.now()});
+  }
+  persist(); openApp('wechat'); toast('已保存人设');
+}
+
+/* ============ Chat ============ */
+let currentChatId = null;
+let fnMode = 'tools'; // 'tools' | 'stickers'
+function openChat(pid){
+  currentChatId = pid;
+  const p = store.personas.find(x=>x.id===pid);
+  document.getElementById('chatTitle').textContent = p ? p.name : '聊天';
+  const api = activeApi();
+  document.getElementById('chatSub').textContent = api ? (api.name||'') : '未配置 API';
+  if(!store.chats[pid]) store.chats[pid] = [];
+  fnMode = 'tools';
+  document.getElementById('fnPanel').classList.remove('open');
+  document.getElementById('chatInput').value = '';
+  showView('chat');
+  renderChat();
+}
+
+function renderChat(){
+  const p = store.personas.find(x=>x.id===currentChatId);
+  if(!p) return;
+  const area = document.getElementById('chatArea');
+  const msgs = store.chats[currentChatId] || [];
+  let html = '';
+  msgs.forEach(m=>{
+    if(m.type==='sticker'){
+      const st = store.stickers.find(s=>s.id===m.stickerId);
+      html += `<div class="msg ${m.role}"><div class="sticker-wrap">${st?`<img class="sticker" src="${st.dataUrl}" alt="">`:'<div class="bubble">[表情包]</div>'}<div class="sticker-name">${esc(st? st.name : '')}</div></div></div>`;
+    } else if(m.type==='voice'){
+      html += `<div class="msg ${m.role}"><div class="bubble voice-bubble" onclick="toggleVoice(this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+        <div class="waves">${waveBars(m.duration)}</div>
+        <span class="dur">${m.duration}"</span>
+      </div><div class="voice-reveal">${esc(m.content||'（空语音）')}</div><div class="meta">点击气泡展开语音内容</div></div>`;
+    } else {
+      html += `<div class="msg ${m.role}"><div class="bubble">${esc(m.content)}</div><div class="meta">${fmtTime(m.ts)}</div></div>`;
+    }
+  });
+  area.innerHTML = html;
+  area.scrollTop = area.scrollHeight;
+}
+function waveBars(dur){
+  const n = Math.min(8, Math.max(4, Math.round(dur/2)));
+  let s = '';
+  const hs = [6,12,18,10,15,7,13,9];
+  for(let i=0;i<n;i++){ s += `<span style="height:${hs[i]}px;"></span>`; }
+  return s;
+}
+function toggleVoice(el){
+  const reveal = el.parentElement.querySelector('.voice-reveal');
+  if(reveal) reveal.classList.toggle('open');
+}
+
+function sendText(){
+  const inp = document.getElementById('chatInput');
+  const txt = inp.value.trim();
+  if(!txt) return;
+  if(!store.chats[currentChatId]) store.chats[currentChatId] = [];
+  store.chats[currentChatId].push({id:uid(),role:'user',type:'text',content:txt,ts:Date.now()});
+  inp.value = '';
+  persist(); renderChat();
+}
+
+function toggleFn(){
+  const panel = document.getElementById('fnPanel');
+  if(panel.classList.contains('open') && fnMode==='tools'){ panel.classList.remove('open'); return; }
+  fnMode = 'tools';
+  panel.classList.add('open');
+  renderFn();
+}
+function renderFn(){
+  const inner = document.getElementById('fnInner');
+  if(fnMode==='tools'){
+    inner.innerHTML = `
+      <div class="fn-tools">
+        <button class="fn-tool" onclick="doVoice()">
+          <span class="ic voice"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></span>
+          <span class="lbl">发语音</span>
+        </button>
+        <button class="fn-tool" onclick="openStickers()">
+          <span class="ic sticker"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><circle cx="15.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
+          <span class="lbl">表情包</span>
+        </button>
+      </div>`;
+  } else {
+    renderStickerGrid();
+  }
+}
+
+/* ---------- Voice ---------- */
+function doVoice(){
+  document.getElementById('fnPanel').classList.remove('open');
+  openModal(`
+    <div class="m-title">模拟发语音</div>
+    <div class="m-sub">输入语音内容，发送后点击语音气泡即可展开查看内容。</div>
+    <div class="field"><textarea id="voiceText" placeholder="这是一段模拟的语音内容..." style="min-height:80px;">今天天气真好呀，一起出去走走吧～</textarea></div>
+    <div class="m-actions"><button class="btn btn-soft" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="sendVoice()">发送语音</button></div>`);
+}
+function sendVoice(){
+  const txt = document.getElementById('voiceText').value.trim() || '（空语音）';
+  const dur = Math.max(1, Math.round(txt.length / 2));
+  if(!store.chats[currentChatId]) store.chats[currentChatId] = [];
+  store.chats[currentChatId].push({id:uid(),role:'user',type:'voice',content:txt,duration:dur,ts:Date.now()});
+  persist(); closeModal(); renderChat();
+}
+
+/* ---------- Stickers ---------- */
+function openStickers(){
+  fnMode = 'stickers';
+  document.getElementById('fnPanel').classList.add('open');
+  renderStickerGrid();
+}
+function renderStickerGrid(){
+  const inner = document.getElementById('fnInner');
+  let cells = '';
+  store.stickers.forEach(s=>{
+    cells += `<div class="sticker-cell" onclick="sendSticker('${s.id}')">
+      <img src="${s.dataUrl}" alt="">
+      <span class="nm">${esc(s.name)}</span>
+      <span class="del" onclick="event.stopPropagation();delSticker('${s.id}')">×</span>
+    </div>`;
+  });
+  inner.innerHTML = `
+    <div class="fn-head">
+      <span class="ttl">表情包（${store.stickers.length}）</span>
+      <button class="back-link" onclick="backToTools()">← 返回</button>
+    </div>
+    <div class="sticker-grid">
+      ${cells}
+      <div class="sticker-cell import-cell" onclick="document.getElementById('stickerInput').click()">
+        <span class="plus">+</span>
+        <span class="lbl">导入表情包</span>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--ink-faint);margin-top:12px;line-height:1.5;">支持批量导入图片，名字将自动识别为文件名（不含扩展名），可点击表情右上角 × 删除。</div>`;
+}
+function backToTools(){ fnMode='tools'; renderFn(); }
+function importStickers(ev){
+  const files = Array.from(ev.target.files || []);
+  if(!files.length) return;
+  let loaded = 0, failed = 0;
+  files.forEach(f=>{
+    if(!f.type.startsWith('image/')){ failed++; return; }
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const name = f.name.replace(/\.[^.]+$/,'');
+      store.stickers.push({id:uid(), name: name, dataUrl: e.target.result});
+      loaded++;
+      if(loaded + failed === files.length){ finishImport(loaded, failed); }
+    };
+    reader.onerror = function(){ failed++; if(loaded+failed===files.length) finishImport(loaded,failed); };
+    reader.readAsDataURL(f);
+  });
+  ev.target.value = '';
+}
+function finishImport(loaded, failed){
+  try{ persist(); }catch(e){ toast('存储失败：表情包过大'); }
+  toast('导入 '+loaded+' 个表情包' + (failed?('，'+failed+' 个失败'):''));
+  renderStickerGrid();
+}
+function delSticker(id){
+  store.stickers = store.stickers.filter(s=>s.id!==id);
+  persist(); renderStickerGrid();
+}
+function sendSticker(id){
+  if(!store.chats[currentChatId]) store.chats[currentChatId] = [];
+  store.chats[currentChatId].push({id:uid(),role:'user',type:'sticker',stickerId:id,ts:Date.now()});
+  persist(); renderChat();
+  document.getElementById('fnPanel').classList.remove('open');
+}
+
+/* ============ AI Reply ============ */
+async function doReply(){
+  const api = activeApi();
+  if(!api){ toast('请先在设置中配置 API'); return; }
+  const p = store.personas.find(x=>x.id===currentChatId);
+  if(!p) return;
+  const msgs = store.chats[currentChatId] || [];
+  if(msgs.length===0){ toast('先发一条消息吧'); return; }
+
+  const btn = document.getElementById('replyBtn');
+  btn.disabled = true;
+
+  // build system prompt from persona + world books
+  const worldBooks = collectWorldBooks(p);
+  let system = '你是「' + (p.name||'未命名') + '」，请严格扮演该角色进行回复。\n\n';
+  if(p.role) system += '【角色设定】\n' + p.role + '\n\n';
+  if(worldBooks.length){
+    system += '【世界书守则（必须遵守，不可违背）】\n';
+    worldBooks.forEach(w=>{ system += '--- ' + (w.name||'') + ' ---\n' + (w.content||'') + '\n'; });
+  }
+
+  const history = msgs.map(m=>{
+    if(m.type==='sticker') return {role:m.role, content:'[发送了一个表情包'+(m.content?('：'+m.content):'')+']'};
+    if(m.type==='voice') return {role:m.role, content:'[语音] '+(m.content||'')};
+    return {role:m.role, content:m.content};
+  });
+  const messages = [{role:'system', content:system}, ...history];
+
+  // typing indicator
+  const area = document.getElementById('chatArea');
+  const typingEl = document.createElement('div');
+  typingEl.className = 'msg assistant';
+  typingEl.innerHTML = '<div class="bubble typing"><span></span><span></span><span></span></div>';
+  area.appendChild(typingEl);
+  area.scrollTop = area.scrollHeight;
+
+  try{
+    const base = getApiBase(api.url);
+    const res = await fetch(base + '/chat/completions', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+api.key },
+      body: JSON.stringify({ model: api.model, messages: messages })
+    });
+    if(!res.ok){ const t = await res.text().catch(()=>''); throw new Error('HTTP '+res.status+(t?(' '+t.slice(0,120)):'')); }
+    const data = await res.json();
+    const content = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+    if(!content) throw new Error('返回内容为空');
+    store.chats[currentChatId].push({id:uid(),role:'assistant',type:'text',content:content,ts:Date.now()});
+    persist();
+  }catch(e){
+    toast('回复失败：'+e.message);
+  }finally{
+    typingEl.remove();
+    btn.disabled = false;
+    renderChat();
+  }
+}
+function collectWorldBooks(p){
+  const set = [];
+  store.worldBooks.forEach(w=>{
+    if(w.isGlobalDefault) set.push(w);
+    else if(p.worldBookIds && p.worldBookIds.includes(w.id)) set.push(w);
+  });
+  return set;
+}
+
+/* ============ World Book ============ */
+let wbGroupFilter = 'all';
+function renderWorldBooks(){
+  const b = document.getElementById('worldbookBody');
+  const groups = Array.from(new Set(store.worldBooks.map(w=>w.group||'未分组').filter(Boolean)));
+  if(store.worldBooks.length===0){
+    b.innerHTML = `<div class="empty" style="padding-top:80px;">${IC.worldbook}<div class="t">还没有世界书</div><div class="p">世界书是角色必须遵守的守则。<br>点击右上角 + 添加第一本世界书</div></div>`;
+    return;
+  }
+  let html = `<div style="margin-bottom:6px;">`;
+  html += `<span class="chip ${wbGroupFilter==='all'?'active':''}" onclick="setWbGroup('all')">全部</span>`;
+  groups.forEach(g=>{ html += `<span class="chip ${wbGroupFilter===g?'active':''}" onclick="setWbGroup('${esc(g)}')">${esc(g)}</span>`; });
+  html += `</div>`;
+
+  const list = store.worldBooks.filter(w=> wbGroupFilter==='all' || (w.group||'未分组')===wbGroupFilter);
+  list.forEach(w=>{
+    html += `<div class="card">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:15px;font-weight:700;display:flex;align-items:center;gap:6px;">${esc(w.name||'未命名')}
+            ${w.isGlobalDefault?'<span class="badge">全局默认</span>':''}
+          </div>
+          <div style="font-size:12px;color:var(--ink-faint);margin-top:3px;">${esc(w.group||'未分组')}</div>
+        </div>
+        <label class="switch" title="全局默认生效">
+          <input type="checkbox" ${w.isGlobalDefault?'checked':''} onchange="toggleWbGlobal('${w.id}', this.checked)">
+          <span class="track"></span><span class="knob"></span>
+        </label>
+        <button class="btn btn-soft xs" onclick="editWorldBook('${w.id}')">${IC.edit}</button>
+        <button class="btn btn-danger xs" onclick="delWorldBook('${w.id}')">${IC.trash}</button>
+      </div>
+      <div style="font-size:13px;color:var(--ink-soft);line-height:1.6;margin-top:10px;max-height:86px;overflow:hidden;white-space:pre-wrap;">${esc(w.content||'（无内容）')}</div>
+      <div style="font-size:11px;color:var(--ink-faint);margin-top:8px;">${w.isGlobalDefault?'对所有角色全局生效':'需在角色编辑中手动勾选后生效'}</div>
+    </div>`;
+  });
+  html += `<button class="btn btn-primary btn-block" onclick="openWorldBookForm()">${IC.plus} 添加世界书</button>`;
+  b.innerHTML = html;
+}
+function setWbGroup(g){ wbGroupFilter = g; renderWorldBooks(); }
+function toggleWbGlobal(id, checked){
+  const w = store.worldBooks.find(x=>x.id===id);
+  if(w){ w.isGlobalDefault = checked; persist(); renderWorldBooks(); toast(checked?'已设为全局默认':'已取消全局默认'); }
+}
+function delWorldBook(id){
+  openModal(`<div class="m-title">删除世界书</div><div class="m-sub">删除后，绑定了它的角色将不再遵守该守则。确定删除吗？</div>
+    <div class="m-actions"><button class="btn btn-soft" onclick="closeModal()">取消</button>
+    <button class="btn btn-danger" onclick="confirmDelWorldBook('${id}')">删除</button></div>`);
+}
+function confirmDelWorldBook(id){
+  store.worldBooks = store.worldBooks.filter(w=>w.id!==id);
+  store.personas.forEach(p=>{ if(p.worldBookIds) p.worldBookIds = p.worldBookIds.filter(x=>x!==id); });
+  persist(); closeModal(); renderWorldBooks(); toast('已删除');
+}
+
+let editingWorldBookId = null;
+function openWorldBookForm(id){
+  editingWorldBookId = id || null;
+  const w = id ? store.worldBooks.find(x=>x.id===id) : null;
+  const b = document.getElementById('worldbookBody');
+  const existingGroups = Array.from(new Set(store.worldBooks.map(x=>x.group||'').filter(Boolean)));
+  const groupOpts = ['<option value="">未分组</option>'].concat(existingGroups.map(g=>`<option value="${esc(g)}" ${w&&w.group===g?'selected':''}>${esc(g)}</option>`)).join('');
+  b.innerHTML = `
+    <div class="card">
+      <div class="field"><label>世界书名称</label><input id="wbName" placeholder="例如：魔法世界设定" value="${esc(w? w.name : '')}"></div>
+      <div class="field"><label>分组</label>
+        <input id="wbGroup" list="wbGroups" placeholder="输入或选择分组" value="${esc(w? w.group : '')}">
+        <datalist id="wbGroups">${existingGroups.map(g=>`<option value="${esc(g)}">`).join('')}</datalist>
+      </div>
+      <div class="field"><label>世界书内容（守则）</label><textarea id="wbContent" style="min-height:140px;" placeholder="写下角色必须遵守的世界规则...">${esc(w? w.content : '')}</textarea></div>
+      <label class="list-item" style="cursor:pointer;box-shadow:none;background:#f6f9f7;margin:0;">
+        <div class="list-main"><div class="t" style="font-size:14px;">全局默认生效</div><div class="p" style="font-size:12px;color:var(--ink-faint);">开启后对所有角色自动生效</div></div>
+        <label class="switch"><input type="checkbox" id="wbGlobal" ${w&&w.isGlobalDefault?'checked':''}><span class="track"></span><span class="knob"></span></label>
+      </label>
+      <div style="display:flex;gap:10px;margin-top:14px;">
+        <button class="btn btn-soft" style="flex:1;" onclick="renderWorldBooks()">取消</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="saveWorldBook()">保存</button>
+      </div>
+    </div>`;
+}
+function saveWorldBook(){
+  const name = document.getElementById('wbName').value.trim();
+  if(!name){ toast('请填写世界书名称'); return; }
+  const group = document.getElementById('wbGroup').value.trim();
+  const content = document.getElementById('wbContent').value.trim();
+  const isGlobal = document.getElementById('wbGlobal').checked;
+  if(editingWorldBookId){
+    const w = store.worldBooks.find(x=>x.id===editingWorldBookId);
+    Object.assign(w,{name,group,content,isGlobalDefault:isGlobal});
+  } else {
+    store.worldBooks.push({id:uid(),name,group,content,isGlobalDefault:isGlobal});
+  }
+  persist(); renderWorldBooks(); toast('已保存世界书');
+}
+
+/* ============ Init ============ */
+tick();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
